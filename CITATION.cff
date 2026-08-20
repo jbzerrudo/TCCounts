@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software or the derived series, please cite it as below."
+title: "TCCounts: archive-curation decomposition of Philippine Area of Responsibility tropical cyclone counts"
+authors:
+  - family-names: Zerrudo
+    given-names: Jef
+    orcid: "https://orcid.org/0000-0001-7892-0999"
+    affiliation: "Philippine Atmospheric, Geophysical and Astronomical Services Administration (PAGASA)"
+repository-code: "https://github.com/jbzerrudo/TCCounts"
+license: MIT
+keywords:
+  - tropical cyclone frequency
+  - Philippine Area of Responsibility
+  - best-track homogeneity
+  - IBTrACS

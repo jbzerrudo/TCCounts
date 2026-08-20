@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+par_clipped.csv
+ibtracs*.csv
+*.png
+.DS_Store

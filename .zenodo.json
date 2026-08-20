@@ -1,0 +1,20 @@
+{
+  "title": "TCCounts: archive-curation decomposition of Philippine Area of Responsibility tropical cyclone counts",
+  "description": "Scripts and derived annual series behind the analysis of tropical cyclone counts entering the Philippine Area of Responsibility, 1923-2023. Clips IBTrACS to the PAGASA PAR hexagon, splits each year's storms into those an operational agency classified by intensity and those carried as position-only track entries, and reproduces every value reported in the accompanying manuscript.",
+  "upload_type": "software",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Zerrudo, Jef",
+      "affiliation": "Philippine Atmospheric, Geophysical and Astronomical Services Administration (PAGASA)",
+      "orcid": "0000-0001-7892-0999"
+    }
+  ],
+  "keywords": [
+    "tropical cyclone frequency",
+    "Philippine Area of Responsibility",
+    "best-track homogeneity",
+    "observing-system bias",
+    "IBTrACS"
+  ]
+}
