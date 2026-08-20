@@ -48,14 +48,16 @@ python src/clip_par.py ibtracs.WP.list.v04r01.csv par_clipped.csv
 python src/build_series.py par_clipped.csv data/par_annual_series.csv
 
 # 2. recompute and check every number quoted in the manuscript
-python src/analysis.py data/par_annual_series.csv data/start_year_sweep.csv
+python src/analysis.py data/par_annual_series.csv data/start_year_sweep.csv par_clipped.csv
 
 # 3. redraw the figure
 python src/figure.py data/par_annual_series.csv figures/
 ```
 
-`analysis.py` prints `OK` or `MISMATCH` beside each value and runs 58 checks. A clean
-run prints no `MISMATCH`. If you get one, the IBTrACS revision has moved and the
+`analysis.py` prints `OK` or `MISMATCH` beside each value and runs 129 checks covering
+every number in the manuscript: trends, no-trend bands, R-squared, the start-year sweep,
+the detection-threshold power analysis, both forecast horizons, and the counting-rule
+sensitivity. It exits non-zero if any check fails. If you get one, the IBTrACS revision has moved and the
 manuscript numbers need restating; shipping the check rather than the result is the point.
 
 Step 1 needs the raw archive. Steps 2 and 3 run from `data/` alone, which is in this
