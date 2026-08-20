@@ -90,26 +90,26 @@ for c, a, b, sl, R, lo_, hi_ in [
 
 print("\n--- Section 3.2, start-year sweep ---")
 ok("start years sampled", len(sw), 59, 0)
-ok("significant increases", (sw.sig == "+").sum(), 4, 0)
-ok("significant decreases", (sw.sig == "-").sum(), 16, 0)
+ok("significant increases", (sw.sig == "+").sum(), 5, 0)
+ok("significant decreases", (sw.sig == "-").sum(), 15, 0)
 ok("minimum slope", sw.slope.min(), -0.1455, .0005)
 ok("maximum slope", sw.slope.max(), 0.0584, .0005)
-ok("last increasing start year", sw[sw.sig == "+"].start.max(), 1890, 0)
+ok("last increasing start year", sw[sw.sig == "+"].start.max(), 1892, 0)
 ok("first decreasing start year", sw[sw.sig == "-"].start.min(), 1946, 0)
 ok("last decreasing start year", sw[sw.sig == "-"].start.max(), 1978, 0)
 ok("classified start years", sw.csig.notna().sum(), 25, 0)
 ok("classified significant", sw.csig.dropna().astype(str).isin(["+", "-"]).sum(), 0, 0)
 sub = sw[sw.start <= 1994]
 up = int((sub.sig == "+").sum()); dn = int((sub.sig == "-").sum())
-ok("30-yr-minimum sweep, increases", up, 4, 0)
-ok("30-yr-minimum sweep, decreases", dn, 17, 1)
+ok("30-yr-minimum sweep, increases", up, 5, 0)
+ok("30-yr-minimum sweep, decreases", dn, 15, 0)
 
 print("\n--- Section 3.2, detection threshold and power ---")
 s = S.loc[1951:2023, "any_int"]
 x = np.asarray(s.index, float); y = np.asarray(s, float)
 lo, hi = band(s)
 resid = y - np.poly1d(np.polyfit(x, y, 1))(x); xc = x - x.mean()
-for beta, want, tol in [(0.06, 85, 6), (0.08, 99, 4)]:
+for beta, want, tol in [(0.06, 84, 1), (0.08, 97, 1)]:
     hits = sum(1 for _ in range(600)
                if not (lo <= st.linregress(x, resid[rng.permutation(len(resid))]
                                            + beta * xc + y.mean()).slope <= hi))
@@ -117,6 +117,26 @@ for beta, want, tol in [(0.06, 85, 6), (0.08, 99, 4)]:
 ok("threshold expressed over 73 years", 0.06 * 73, 4.4, .05)
 ok("observed slope as fraction of threshold", slope(s) / 0.06, 0.22, .02)
 ok("raw decline as multiple of threshold", abs(slope(S.loc[1951:2023, "total"])) / 0.06, 1.8, .05)
+print("\n--- Section 2, block-length sensitivity ---")
+
+
+def blocklen_checks():
+    windows = [("total", 1884, 2023), ("total", 1951, 2023),
+               ("any_int", 1951, 2023), ("pos_only", 1951, 2023)]
+    for L in (5, 15, 20):
+        for cls, a, b in windows:
+            ser = S.loc[a:b, cls]
+            sl = slope(ser)
+            lo10, hi10 = band(ser, L=10)
+            loL, hiL = band(ser, L=L)
+            same = (not (lo10 <= sl <= hi10)) == (not (loL <= sl <= hiL))
+            # documented exception, see Section 2 of the manuscript
+            want = 0 if (L == 20 and cls == "total" and a == 1884) else 1
+            ok("L=%d verdict %s %d-%d matches L=10" % (L, cls, a, b),
+               1.0 if same else 0.0, want, 0)
+
+
+blocklen_checks()
 
 print("\n--- Section 3.3, the identity closes ---")
 ok("classified + unclassified, 1884-2023",
@@ -131,11 +151,11 @@ for a, b, v in [(1945, 1950, 6.3), (1951, 1976, 6.5), (1977, 2000, 2.1), (2001, 
 print("\n--- Section 3.4 and Table 2, backtest at both horizons ---")
 for H, want in [(20, {"Full-record mean": (0.95, 1.15, -0.80),
                       "Trailing mean": (1.09, 1.18, -0.36),
-                      "Linear trend extrapolated": (1.37, 1.67, 0.61),
+                      "Linear trend extrapolated": (1.38, 1.69, 0.64),
                       "Last observed value": (2.79, 3.55, 0.02)}),
                 (30, {"Full-record mean": (0.95, 0.99, -0.95),
                       "Trailing mean": (0.75, 0.79, -0.69),
-                      "Linear trend extrapolated": (0.53, 0.81, 0.28),
+                      "Linear trend extrapolated": (0.53, 0.82, 0.30),
                       "Last observed value": (2.13, 3.03, 0.55)})]:
     org = [t for t in range(1951 + H, 2024 - H)]
     ok("origins at %d-year horizon" % H, len(org), 33 if H == 20 else 13, 0)
@@ -145,7 +165,7 @@ for H, want in [(20, {"Full-record mean": (0.95, 1.15, -0.80),
         lr = st.linregress(np.asarray(tr.index, float), np.asarray(tr, float))
         E["Full-record mean"].append(tr.mean() - tg)
         E["Trailing mean"].append(tr.iloc[-H:].mean() - tg)
-        E["Linear trend extrapolated"].append(lr.slope * (t + H / 2) + lr.intercept - tg)
+        E["Linear trend extrapolated"].append(lr.slope * (t + (H + 1) / 2) + lr.intercept - tg)
         E["Last observed value"].append(tr.iloc[-1] - tg)
     for k, (mae, rmse, bias) in want.items():
         v = np.array(E[k])
@@ -157,12 +177,12 @@ print("\n--- Section 3.4, why neither horizon is decisive ---")
 for H, want in [(20, 2.6), (30, 1.4)]:
     org = [t for t in range(1951 + H, 2024 - H)]
     ok("independent windows at H=%d" % H, ((org[-1] + H) - (org[0] + 1) + 1) / H, want, .06)
-for lo_y, hi_y, wclim, wlin in [(1981, 1987, 1.00, 0.23), (1988, 1993, 0.88, 0.87)]:
+for lo_y, hi_y, wclim, wlin in [(1981, 1987, 1.00, 0.22), (1988, 1993, 0.88, 0.88)]:
     ec, el = [], []
     for t in range(lo_y, hi_y + 1):
         tr = s[s.index <= t]; tg = s[(s.index > t) & (s.index <= t + 30)].mean()
         lr = st.linregress(np.asarray(tr.index, float), np.asarray(tr, float))
-        ec.append(tr.mean() - tg); el.append(lr.slope * (t + 15) + lr.intercept - tg)
+        ec.append(tr.mean() - tg); el.append(lr.slope * (t + 15.5) + lr.intercept - tg)
     ok("origins %d-%d, climatology MAE" % (lo_y, hi_y), np.abs(np.array(ec)).mean(), wclim, .006)
     ok("origins %d-%d, linear trend MAE" % (lo_y, hi_y), np.abs(np.array(el)).mean(), wlin, .006)
 ok("disjoint block mean 1951-1980", s.loc[1951:1980].mean(), 18.60, .006)
@@ -178,9 +198,10 @@ if CLIP:
     print("\n--- Table 3, sensitivity to the counting rule ---")
     d = pd.read_csv(CLIP, low_memory=False)
     d = d[(d.SEASON >= 1884) & (d.SEASON <= 2023)].copy()
-    g = pd.to_numeric(d["TOK_GRADE"], errors="coerce").fillna(0)
+    gcol = "TOKYO_GRADE" if "TOKYO_GRADE" in d.columns else "TOK_GRADE"
+    grade = pd.to_numeric(d[gcol], errors="coerce").fillna(0)
     w = pd.to_numeric(d["USA_WIND"], errors="coerce").fillna(0)
-    d["_any"] = (g > 0) | (w > 0)
+    d["_any"] = grade.isin([2, 3, 4, 5, 9]) | (w > 0)
     main = d[d.TRACK_TYPE == "main"]
     cnt = main.groupby("SID").size()
     trop = main.groupby("SID").NATURE.agg(lambda v: bool(set(v) & {"TS", "DS"}))
