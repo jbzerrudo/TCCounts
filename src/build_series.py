@@ -2,17 +2,21 @@
 Step 2. Build the three annual PAR count series from the clipped archive.
 
     total      every unique storm with a fix inside the PAR
-    jma_class  storms the JMA graded Tropical Depression or stronger (grade 2-6)
-    pos_only   storms with no JMA grade and no JTWC wind anywhere inside the PAR
+    any_int    CLASSIFIED: some agency reported an intensity at some PAR fix,
+               meaning a JMA grade of Tropical Depression or stronger, or a JTWC wind
+    pos_only   UNCLASSIFIED: neither, so the storm is a position on a map and nothing else
+    jma_class  the stricter JMA-graded-only subset, reported for sensitivity
 
-total = classified-by-any-agency + pos_only, exactly, every year.
+total = any_int + pos_only exactly, every year. The two classes partition the total,
+so their fitted trends sum to the fitted trend of the total. That identity is the
+whole argument: it makes the decomposition an accounting statement, not a model.
 
 Usage   python src/build_series.py par_clipped.csv data/par_annual_series.csv
 """
 import sys
 import pandas as pd
 
-FIRST, LAST = 1923, 2023
+FIRST, LAST = 1884, 2023
 
 
 def build(df, first=FIRST, last=LAST):

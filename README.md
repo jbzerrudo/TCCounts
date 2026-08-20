@@ -1,34 +1,39 @@
 # TCCounts
 
 Annual counts of tropical cyclones entering the Philippine Area of Responsibility
-(PAR) show a decline since 1951. This repository shows that the decline is a
-property of the archive rather than of the climate, and gives you everything
-needed to check that claim from the public IBTrACS record.
+(PAR) are reported to be declining. This repository shows that the direction and
+significance of that trend are set by the analyst's choice of start year acting on
+an archive of changing completeness, and gives you everything needed to check the
+claim from the public IBTrACS record.
 
 ## The result in one table
 
-Split each year's PAR storms into two piles: those an operational agency graded for
-intensity, and those carried as a position on a map and nothing else.
+Split each year's PAR storms into two classes: those an operational agency ever
+classified for intensity, and those carried as a position on a map and nothing else.
+The two classes partition the total, so their trends sum to the total's trend exactly.
 
-| period | all entries | intensity-classified | unclassified | unclassified share |
+Fit the raw count over windows that all end in 2023 but begin anywhere from 1884 to 2000:
+
+| | range of OLS slope | significant increase | significant decrease |
+|---|---|---|---|
+| **all track entries** | +0.061 to −0.160 storms yr⁻¹ | 4 of 59 start years | 20 of 59 start years |
+| **classified only** | −0.062 to +0.100 storms yr⁻¹ | 0 of 25 | 0 of 25 |
+
+Same archive, same domain, same estimator, opposite conclusions.
+
+The mechanism is compositional:
+
+| period | all entries | classified | unclassified | unclassified share |
 |---|---|---|---|---|
-| 1951-1976 | 25.8 | 12.4 | 7.0 | 27% |
-| 1977-2000 | 22.8 | 17.2 | 2.4 | 10% |
-| 2001-2023 | 19.3 | 16.2 | 0.4 | 2% |
+| 1884–1922 | 14.9 | 0.0 | 14.9 | 100% |
+| 1923–1944 | 19.4 | 0.0 | 19.4 | 100% |
+| 1945–1950 | 21.7 | 14.7 | 7.0 | 32% |
+| 1951–1976 | 25.8 | 18.8 | 7.0 | 27% |
+| 1977–2000 | 22.8 | 20.4 | 2.4 | 10% |
+| 2001–2023 | 19.3 | 18.9 | 0.4 | 2% |
 
-Over 1951 to 2023 the raw count falls at 0.122 storms per year, which a moving-block
-bootstrap places outside the no-trend null. The unclassified component alone falls at
-0.132 per year, more than accounting for the whole decline. The classified count does
-not fall in any window tested.
-
-Over the full 1923 to 2023 record the raw count looks flat, at -0.0070 storms per
-year. That flatness is a cancellation, not a null: the classified component rises at
-+0.2082 and the unclassified falls at -0.2152, and the two sum to the observed value
-by construction. Both components are among the most significant trends in the data
-and neither is physical.
-
-No PAR fix before 1945 carries intensity information from any agency. JTWC reporting
-begins in 1945, JMA grading in 1951, WMO winds in 1977.
+No PAR storm before 1945 carries intensity information from any agency: zero of 1,009.
+JTWC reporting begins in 1945, JMA grading in 1951, WMO winds in 1977.
 
 ## Reproducing it
 
@@ -40,30 +45,28 @@ python src/clip_par.py ibtracs.WP.list.v04r01.csv par_clipped.csv
 python src/build_series.py par_clipped.csv data/par_annual_series.csv
 
 # 2. recompute and check every number quoted in the manuscript
-python src/analysis.py data/par_annual_series.csv par_clipped.csv
+python src/analysis.py data/par_annual_series.csv data/start_year_sweep.csv
 
 # 3. redraw the figure
 python src/figure.py data/par_annual_series.csv figures/
 ```
 
-`analysis.py` prints `OK` or `MISMATCH` beside each value. A clean run prints no
-`MISMATCH`. If you get one, the IBTrACS revision has moved and the manuscript
-numbers need restating; that is the point of shipping the check rather than the
-result.
+`analysis.py` prints `OK` or `MISMATCH` beside each value and runs 58 checks. A clean
+run prints no `MISMATCH`. If you get one, the IBTrACS revision has moved and the
+manuscript numbers need restating; shipping the check rather than the result is the point.
 
-Step 1 needs the raw archive. Steps 2 and 3 run from `data/par_annual_series.csv`
-alone, which is in this repository, so you can verify the analysis without
-downloading anything.
+Step 1 needs the raw archive. Steps 2 and 3 run from `data/` alone, which is in this
+repository, so the analysis is verifiable without downloading anything.
 
 ## Layout
 
 ```
-src/clip_par.py       IBTrACS WP  ->  PAR-clipped fixes
-src/build_series.py   PAR-clipped ->  three annual series
-src/analysis.py       every manuscript number, each checked
-src/figure.py         Figure 1
-data/                 the derived series, plus provenance notes
-figures/              Figure 1 as PDF
+src/clip_par.py        IBTrACS WP  ->  PAR-clipped fixes (hexagon, not bounding box)
+src/build_series.py    PAR-clipped ->  annual series, 1884-2023
+src/analysis.py        every manuscript number, each checked
+src/figure.py          Figure 1
+data/                  derived series, start-year sweep, backtest, provenance notes
+figures/               Figure 1 as PDF
 ```
 
 ## Citing

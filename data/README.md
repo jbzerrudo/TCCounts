@@ -2,15 +2,17 @@
 
 ## What is here
 
-`par_annual_series.csv` — the three derived annual series, 1923 to 2023, one row per season.
+`par_annual_series.csv` — the derived annual series, 1884 to 2023, one row per season.
+`start_year_sweep.csv` — OLS slope and block-bootstrap no-trend band for every start year.
+`backtest.json` — rolling-origin forecast comparison.
 
 | column | meaning |
 |---|---|
 | `SEASON` | year |
 | `total` | every unique storm with at least one fix inside the PAR |
-| `jma_class` | storms the JMA graded Tropical Depression or stronger (grade 2 to 6) |
-| `any_int` | storms with a JMA grade **or** a JTWC wind at any PAR fix |
-| `pos_only` | `total - any_int`; storms carried as a position on a map and nothing else |
+| `any_int` | **classified**: a JMA grade **or** a JTWC wind at any PAR fix |
+| `pos_only` | **unclassified**: `total - any_int`; a position on a map and nothing else |
+| `jma_class` | the stricter JMA-graded-only subset, for sensitivity |
 
 `total = any_int + pos_only` exactly, every year. That identity is the whole argument.
 

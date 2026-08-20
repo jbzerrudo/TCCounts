@@ -7,65 +7,51 @@ plt.rcParams.update({'font.family':'sans-serif','font.sans-serif':['DejaVu Sans'
  'axes.spines.right':False,'legend.frameon':False,'axes.labelsize':8,'legend.fontsize':7,'axes.titlesize':8.5})
 BLUE='#0072B2'; ORANGE='#D55E00'; GREY='#666666'; TEAL='#009E73'
 S=pd.read_csv((sys.argv[1] if len(sys.argv)>1 else 'data/par_annual_series.csv')).set_index('SEASON')
-rng=np.random.default_rng(3)
-def band(s,L=10,n=2500):
-    v=s.values; N=len(v); out=[]
-    for _ in range(n):
-        idx=np.concatenate([np.arange(i,i+L)%N for i in rng.integers(0,N,size=int(np.ceil(N/L)))])[:N]
-        out.append(st.linregress(s.index,v[idx]).slope)
-    return np.percentile(out,[2.5,97.5])
+sw=pd.read_csv('data/start_year_sweep.csv')
+fig,ax=plt.subplots(2,2,figsize=(7.2,5.3))
 
-fig,ax=plt.subplots(2,2,figsize=(7.2,5.2))
-# (a) the three series
 a=ax[0,0]
-a.plot(S.index,S.total,color=GREY,lw=1.1,label='All track entries in the PAR')
-a.plot(S.index,S.jma_class,color=BLUE,lw=1.6,label='Intensity-classified by JMA')
-a.plot(S.index,S.pos_only,color=ORANGE,lw=1.4,ls='--',label='No intensity from any agency')
-a.axvline(1945,color='k',lw=0.6,ls=':'); a.axvline(1951,color='k',lw=0.6,ls=':')
-a.annotate('JTWC\n1945',(1945,38),fontsize=6.5,ha='right',va='top',color='k')
-a.annotate('JMA\n1951',(1952,38),fontsize=6.5,ha='left',va='top',color='k')
-a.set_xlabel('Year'); a.set_ylabel('Storms entering the PAR'); a.set_ylim(0,40)
-a.set_title('(a)  Two components moving in opposite directions',loc='left'); a.legend(loc='upper right',ncol=1,fontsize=6.6)
-# (b) trend vs start year
+a.fill_between(S.index,0,S.any_int,color=BLUE,alpha=.85,lw=0,label='Classified by an agency')
+a.fill_between(S.index,S.any_int,S.total,color=ORANGE,alpha=.85,lw=0,label='No intensity from any agency')
+a.plot(S.index,S.total,color='k',lw=.8,label='All track entries')
+for yr,txt,ha in [(1945,'JTWC 1945','right'),(1951,'JMA 1951','left'),(1977,'WMO 1977','left')]:
+    a.axvline(yr,color='k',lw=.6,ls=':')
+    a.annotate(txt,(yr,1.2),xytext=(-2 if ha=='right' else 2,0),textcoords='offset points',fontsize=6.2,
+               ha=ha,va='bottom',bbox=dict(fc='white',ec='none',pad=0.7),zorder=6)
+a.set_xlabel('Year'); a.set_ylabel('Storms entering the PAR'); a.set_ylim(0,40); a.set_xlim(1884,2023)
+a.set_title('(a)  The archive fills in, it does not just vary',loc='left'); a.legend(loc='upper left',fontsize=6.4,ncol=1)
+
 b=ax[0,1]
-for col,c,lab,y0 in [('total',GREY,'All track entries',1923),('jma_class',BLUE,'JMA-classified',1951)]:
-    xs=list(range(y0,2001,3)); sl=[]; lo=[]; hi=[]
-    for st0 in xs:
-        s=S.loc[st0:2023,col]; sl.append(st.linregress(s.index,s.values).slope); l,h=band(s); lo.append(l); hi.append(h)
-    b.fill_between(xs,lo,hi,color=c,alpha=0.13,lw=0)
-    b.plot(xs,sl,color=c,lw=1.8,label=lab)
-b.axhline(0,color='k',lw=0.7)
+b.fill_between(sw.start,sw.lo,sw.hi,color=GREY,alpha=.16,lw=0)
+b.plot(sw.start,sw.slope,color='k',lw=1.9,label='All track entries')
+up=sw[sw.sig=='+']; dn=sw[sw.sig=='-']
+b.plot(up.start,up.slope,'o',ms=3.4,color=TEAL,label='significant increase')
+b.plot(dn.start,dn.slope,'o',ms=3.4,color=ORANGE,label='significant decrease')
+c2=sw.dropna(subset=['cslope'])
+b.plot(c2.start,c2.cslope,color=BLUE,lw=1.7,label='Classified only')
+b.axhline(0,color='k',lw=.7)
 b.set_xlabel('First year of the fitted window (all end 2023)'); b.set_ylabel('OLS slope (storms yr$^{-1}$)')
-b.set_title('(b)  The decline exists only in the raw count',loc='left'); b.legend(loc='lower right')
-b.annotate('shading = 95% range under\nblock-resampled no-trend null',(1962,0.115),fontsize=6.5,color=GREY)
-# (c) era means
+b.set_title('(b)  The trend is whatever the start year makes it',loc='left'); b.legend(loc='upper left',fontsize=6.3,ncol=1)
+
 c=ax[1,0]
-eras=[(1951,1976),(1977,2000),(2001,2023)]; lab=[f"{a0}-{b0}" for a0,b0 in eras]
-tot=[S.loc[a0:b0,'total'].mean() for a0,b0 in eras]; cls=[S.loc[a0:b0,'jma_class'].mean() for a0,b0 in eras]
-un=[S.loc[a0:b0,'pos_only'].mean() for a0,b0 in eras]
-x=np.arange(3); w=0.27
-c.bar(x-w,tot,w,color=GREY,label='All entries'); c.bar(x,cls,w,color=BLUE,label='JMA-classified'); c.bar(x+w,un,w,color=ORANGE,label='Unclassified')
-for xi,v in zip(x-w,tot): c.annotate(f'{v:.1f}',(xi,v),xytext=(0,2),textcoords='offset points',ha='center',fontsize=6.5,color=GREY)
-for xi,v in zip(x,cls): c.annotate(f'{v:.1f}',(xi,v),xytext=(0,2),textcoords='offset points',ha='center',fontsize=6.5,color=BLUE)
-for xi,v in zip(x+w,un): c.annotate(f'{v:.1f}',(xi,v),xytext=(0,2),textcoords='offset points',ha='center',fontsize=6.5,color=ORANGE)
-c.set_xticks(x); c.set_xticklabels(lab); c.set_ylabel('Mean storms per year'); c.set_ylim(0,30)
-c.set_title('(c)  The raw decline is the unclassified column',loc='left'); c.legend(loc='upper right',ncol=1)
-# (d) backtest
+eras=[(1884,1922),(1923,1944),(1945,1950),(1951,1976),(1977,2000),(2001,2023)]
+lab=[f"{x}-\n{y}" for x,y in eras]; x=np.arange(len(eras)); w=.38
+cl=[S.loc[i:j,'any_int'].mean() for i,j in eras]; un=[S.loc[i:j,'pos_only'].mean() for i,j in eras]
+c.bar(x-w/2,cl,w,color=BLUE,label='Classified'); c.bar(x+w/2,un,w,color=ORANGE,label='Unclassified')
+for xi,v in zip(x-w/2,cl): c.annotate(f'{v:.1f}',(xi,v),xytext=(0,2),textcoords='offset points',ha='center',fontsize=6.3,color=BLUE)
+for xi,v in zip(x+w/2,un): c.annotate(f'{v:.1f}',(xi,v),xytext=(0,2),textcoords='offset points',ha='center',fontsize=6.3,color=ORANGE)
+c.set_xticks(x); c.set_xticklabels(lab,fontsize=6.3); c.set_ylabel('Mean storms per year'); c.set_ylim(0,25)
+c.set_title('(c)  One column empties as the other fills',loc='left'); c.legend(loc='upper left',fontsize=6.6)
+
 e=ax[1,1]
-s=S.loc[1951:2023,'jma_class']; origins=list(range(1971,2004))
-meth={"20-yr trailing mean":[], "Full-record mean":[], "Last observed value":[], "Linear trend extrapolated":[]}
-for t in origins:
-    tr=s[s.index<=t]; tgt=s[(s.index>t)&(s.index<=t+20)].mean(); lr=st.linregress(tr.index,tr.values)
-    meth["20-yr trailing mean"].append(tr.iloc[-20:].mean()-tgt); meth["Full-record mean"].append(tr.mean()-tgt)
-    meth["Last observed value"].append(tr.iloc[-1]-tgt); meth["Linear trend extrapolated"].append(lr.slope*(t+10)+lr.intercept-tgt)
-names=list(meth); mae=[np.abs(np.array(meth[k])).mean() for k in names]
-o=np.argsort(mae); names=[names[i] for i in o]; mae=[mae[i] for i in o]
-cols=[TEAL if i<len(names)-1 else ORANGE for i in range(len(names))]
+T2=json.load(open('data/backtest.json'))
+names=[r[0] for r in T2][::-1]; mae=[float(r[1]) for r in T2][::-1]
+cols=[ORANGE if n.startswith('Linear') else (GREY if n.startswith('Last') else TEAL) for n in names]
 e.barh(range(len(names)),mae,color=cols)
 for i,v in enumerate(mae): e.annotate(f'{v:.2f}',(v,i),xytext=(3,0),textcoords='offset points',va='center',fontsize=7)
-e.set_yticks(range(len(names))); e.set_yticklabels(names,fontsize=7); e.invert_yaxis()
-e.set_xlabel('MAE predicting the next 20-year mean (storms)'); e.set_xlim(0,4.0)
-e.set_title('(d)  Trend extrapolation is the worst method',loc='left')
-plt.tight_layout(pad=0.6,w_pad=1.9,h_pad=1.7)
+e.set_yticks(range(len(names))); e.set_yticklabels(names,fontsize=6.8)
+e.set_xlabel('MAE predicting the next 20-year mean (storms)'); e.set_xlim(0,3.6)
+e.set_title('(d)  Climatology beats trend extrapolation',loc='left')
+plt.tight_layout(pad=.6,w_pad=1.9,h_pad=1.7)
 plt.savefig(''+(sys.argv[2] if len(sys.argv)>2 else 'figures/')+'Fig1.png',dpi=600,bbox_inches='tight'); plt.savefig(''+(sys.argv[2] if len(sys.argv)>2 else 'figures/')+'Fig1.pdf',bbox_inches='tight')
-print("saved. backtest MAE:", {n:round(m,3) for n,m in zip(names,mae)})
+print("saved")
