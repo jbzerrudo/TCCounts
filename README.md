@@ -16,8 +16,8 @@ Fit the raw count over windows that all end in 2023 but begin anywhere from 1884
 
 | | range of OLS slope | significant increase | significant decrease |
 |---|---|---|---|
-| **all track entries** | +0.061 to −0.160 storms yr⁻¹ | 4 of 59 start years | 20 of 59 start years |
-| **classified only** | −0.062 to +0.100 storms yr⁻¹ | 0 of 25 | 0 of 25 |
+| **all track entries** | +0.058 to −0.146 storms yr⁻¹ | 4 of 59 start years | 16 of 59 start years |
+| **classified only** | −0.056 to +0.101 storms yr⁻¹ | 0 of 25 | 0 of 25 |
 
 Same archive, same domain, same estimator, opposite conclusions.
 
@@ -26,13 +26,16 @@ The mechanism is compositional:
 | period | all entries | classified | unclassified | unclassified share |
 |---|---|---|---|---|
 | 1884–1922 | 14.9 | 0.0 | 14.9 | 100% |
-| 1923–1944 | 19.4 | 0.0 | 19.4 | 100% |
-| 1945–1950 | 21.7 | 14.7 | 7.0 | 32% |
-| 1951–1976 | 25.8 | 18.8 | 7.0 | 27% |
-| 1977–2000 | 22.8 | 20.4 | 2.4 | 10% |
+| 1923–1944 | 19.3 | 0.0 | 19.3 | 100% |
+| 1945–1950 | 21.0 | 14.7 | 6.3 | 30% |
+| 1951–1976 | 25.1 | 18.6 | 6.5 | 26% |
+| 1977–2000 | 22.1 | 20.0 | 2.1 | 10% |
 | 2001–2023 | 19.3 | 18.9 | 0.4 | 2% |
 
-No PAR storm before 1945 carries intensity information from any agency: zero of 1,009.
+No PAR storm before 1945 carries intensity information from any agency: zero of 1,004.
+
+Spur tracks are excluded. IBTrACS gives a diverging agency track its own storm identifier, so
+counting every SID double-counts those storms; 43 PAR identifiers are spur-only.
 JTWC reporting begins in 1945, JMA grading in 1951, WMO winds in 1977.
 
 ## Reproducing it

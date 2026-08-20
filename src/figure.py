@@ -50,7 +50,7 @@ cols=[ORANGE if n.startswith('Linear') else (GREY if n.startswith('Last') else T
 e.barh(range(len(names)),mae,color=cols)
 for i,v in enumerate(mae): e.annotate(f'{v:.2f}',(v,i),xytext=(3,0),textcoords='offset points',va='center',fontsize=7)
 e.set_yticks(range(len(names))); e.set_yticklabels(names,fontsize=6.8)
-e.set_xlabel('MAE predicting the next 20-year mean (storms)'); e.set_xlim(0,3.6)
+e.set_xlabel('MAE predicting the next 20-year mean (storms)'); e.set_xlim(0,3.3)
 e.set_title('(d)  Climatology beats trend extrapolation',loc='left')
 plt.tight_layout(pad=.6,w_pad=1.9,h_pad=1.7)
 plt.savefig(''+(sys.argv[2] if len(sys.argv)>2 else 'figures/')+'Fig1.png',dpi=600,bbox_inches='tight'); plt.savefig(''+(sys.argv[2] if len(sys.argv)>2 else 'figures/')+'Fig1.pdf',bbox_inches='tight')

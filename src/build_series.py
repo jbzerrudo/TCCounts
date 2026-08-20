@@ -20,7 +20,11 @@ FIRST, LAST = 1884, 2023
 
 
 def build(df, first=FIRST, last=LAST):
-    d = df[(df.SEASON >= first) & (df.SEASON <= last)].copy()
+    # Spur tracks are excluded. IBTrACS gives a diverging agency track its own SID,
+    # so counting every SID double-counts those storms; the IBTrACS documentation
+    # lists spurs among the reasons to exercise care when counting. Forty-three PAR
+    # identifiers are spur-only.
+    d = df[(df.SEASON >= first) & (df.SEASON <= last) & (df.TRACK_TYPE == "main")].copy()
     grade = pd.to_numeric(d["TOK_GRADE"], errors="coerce").fillna(0)
     wind = pd.to_numeric(d["USA_WIND"], errors="coerce").fillna(0)
     d["_jma"] = grade.between(2, 6)
