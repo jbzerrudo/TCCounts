@@ -131,6 +131,8 @@ if PAR:
         if dom == "PAR":
             ok("PAR storms 1884-2023", tot.sum(), 2757)
             ok("PAR mean per year", tot.mean(), 19.7, .05)
+            ok("PAR mean per year, 1991-2020 standard normal",
+               tot.loc[1991:2020].mean(), 20.2, .05)
             ok("PAR storms 1884-1944", tot.loc[1884:1944].sum(), 1004)
             any_int = counts(m, masks["JMA"] | masks["JTWC"] | masks["CMA"] | masks["HKO"])
             ok("PAR storms 1884-1944 with any agency intensity", any_int.loc[1884:1944].sum(), 0)

@@ -1,8 +1,8 @@
 """
 Regenerate both manuscript figures from the archived data.
 
-    Fig 1  counts and agency coverage, basin and PAR
-    Fig 2  the specification curve over all 2,400 fits
+    Fig 2  counts and agency coverage, basin and PAR
+    Fig 3  the specification curve over all 2,400 fits
 
 Usage
     python src/figures.py par_clipped.csv ibtracs.WP.list.v04r01.csv \
@@ -39,11 +39,11 @@ def coverage(d):
     return n(m).values, {k: v.values for k, v in cov.items()}
 
 
-# One colour per agency, held fixed across the paper. Validated for
-# colour-vision deficiency: worst adjacent pair dE 9.5 (protan), 23.5 (tritan),
-# 25.5 (normal vision). Every line is also labelled in the legend, so identity
-# is never carried by colour alone.
-AGENCY_COLOUR = {"JMA": "#C8940A",    # golden orange
+# One color per agency, held fixed across the paper. Validated for
+# color-vision deficiency: worst adjacent pair dE 9.5 (protan), 23.5 (tritan),
+# 25.5 (normal vision). Every line is also labeled in the legend, so identity
+# is never carried by color alone.
+AGENCY_COLOR = {"JMA": "#C8940A",    # golden orange
                  "CMA": "#A32020",    # red
                  "JTWC": "#1F6FB2",   # blue
                  "HKO": "#D673A8"}    # pink
@@ -63,7 +63,7 @@ def fig1(dom, out):
             a.set_ylabel("Storms per year")
         b = ax[1, j]
         for k in ["JTWC", "CMA", "JMA", "HKO"]:
-            c = AGENCY_COLOUR[k]
+            c = AGENCY_COLOR[k]
             share = 100 * np.where(tot > 0, cov[k] / np.maximum(tot, 1), np.nan)
             sm = np.convolve(share, np.ones(9) / 9, mode="same")
             b.plot(YEARS[4:-4], sm[4:-4], color=c, lw=1.9, label=k)
@@ -81,18 +81,18 @@ def fig1(dom, out):
             p.tick_params(labelsize=8)
     plt.tight_layout(pad=.6, w_pad=1.9, h_pad=1.4)
     for ext in ("pdf", "png"):
-        plt.savefig(f"{out}Fig1.{ext}", dpi=190, bbox_inches="tight")
+        plt.savefig(f"{out}Fig2.{ext}", dpi=190, bbox_inches="tight")
     plt.close()
 
 
 def fig2(R, out):
     """Fitted slope against start year, one panel per agency set, both domains."""
     R = R[R.rule == "main track"]
-    colour = {"WNP basin": "#0072B2", "PAR": "#D55E00"}
+    color = {"WNP basin": "#0072B2", "PAR": "#D55E00"}
     fig, ax = plt.subplots(2, 3, figsize=(10.6, 5.8), sharex=True, sharey=True)
     for i, a in enumerate(AGENCIES):
         p = ax[i // 3, i % 3]
-        for dom, c in colour.items():
+        for dom, c in color.items():
             g = R[(R.agency == a) & (R.domain == dom)].sort_values("start")
             p.plot(g.start, g.lo, color=c, lw=.7, ls=(0, (3, 2)), alpha=.75)
             p.plot(g.start, g.hi, color=c, lw=.7, ls=(0, (3, 2)), alpha=.75)
@@ -119,7 +119,7 @@ def fig2(R, out):
              fontsize=8.2, color="#444444")
     plt.tight_layout(pad=.6, w_pad=1.3, h_pad=1.2)
     for ext in ("pdf", "png"):
-        plt.savefig(f"{out}Fig2.{ext}", dpi=185, bbox_inches="tight")
+        plt.savefig(f"{out}Fig3.{ext}", dpi=185, bbox_inches="tight")
     plt.close()
 
 
@@ -132,7 +132,7 @@ def main():
            "PAR": coverage(pd.read_csv(par, low_memory=False))}
     fig1(dom, out)
     fig2(pd.read_csv(mvf), out)
-    print(f"written: {out}Fig1.pdf, {out}Fig2.pdf")
+    print(f"written: {out}Fig2.pdf, {out}Fig3.pdf")
 
 
 if __name__ == "__main__":

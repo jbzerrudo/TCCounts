@@ -51,7 +51,7 @@ tree, single core:
 | `validate.py` | size and power of the significance test, by simulation | 100 s |
 
 `analysis.py` prints OK or MISMATCH beside each value and exits non-zero if any
-check fails. A clean run is **193 checks, 0 failed**.
+check fails. A clean run is **194 checks, 0 failed**.
 
 ## Requirements
 
@@ -63,13 +63,13 @@ run time: the shoreline the map needs is committed in `data/`.
 ```
 src/    clip_par, multiverse, coverage, map_domain, figures, analysis, validate
 data/   multiverse.csv, coverage.csv, coastline_wnp.npz, README.md
-figures/ Fig1_domain.pdf, Fig1.pdf, Fig2.pdf
+figures/ Fig1_domain.pdf, Fig2.pdf, Fig3.pdf
 ```
 
 `data/README.md` documents the columns, the PAR hexagon, and two column-name
 traps in IBTrACS that will bite anyone who recomputes this from a shapefile
 export.
 
-## Licence
+## License
 
 MIT.

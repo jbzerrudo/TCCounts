@@ -106,7 +106,7 @@ def calibrate(n, mu, target, disp, reps=4000, seed=7):
 
 def size():
     d = BASIN
-    print("\nEmpirical size, nominal 5 percent, %d realisations, "
+    print("\nEmpirical size, nominal 5 percent, %d realizations, "
           "variance/mean = %.2f, mean = %.1f" % (REPS_SIZE, d["disp"], d["mu"]))
     print(f"{'target lag-1':<14}" + "".join(f"{'n=' + str(n):>10}" for n in (73, 50, 33, 24)))
     for t in (0.00, 0.15, 0.25, 0.33):
@@ -121,7 +121,7 @@ def size():
     print("The PAR dispersion of 1.01 gives the same table to within 0.2 points.")
 
     print("\nSize at the operating point of each domain, n = 73, "
-          "%d realisations" % REPS_OP)
+          "%d realizations" % REPS_OP)
     for name, d in (("basin", BASIN), ("PAR", PAR)):
         rho, got = calibrate(73, d["mu"], d["r1"], d["disp"])
         x = np.arange(73, dtype=float)
@@ -129,7 +129,7 @@ def size():
         print(f"  {name:<6} lag-1 {d['r1']:+.2f} (delivered {got:+.3f}), "
               f"variance/mean {d['disp']:.2f}: {100 * reject(V, x).mean():.1f}%")
 
-    print("\nThe discarded circular block bootstrap on the same realisations, "
+    print("\nThe discarded circular block bootstrap on the same realizations, "
           "%d each" % REPS_BOOT)
     for name, d in (("basin", BASIN), ("PAR", PAR)):
         rho, _ = calibrate(73, d["mu"], d["r1"], d["disp"])
@@ -142,7 +142,7 @@ def size():
 def power():
     n = 73
     x = np.arange(n, dtype=float)
-    print("\nPower at n = 73, %d realisations, each domain simulated with its "
+    print("\nPower at n = 73, %d realizations, each domain simulated with its "
           "own dispersion and autocorrelation" % REPS_POWER)
     print(f"{'domain':>7}{'mean':>7}{'var/mean':>10}{'lag-1':>8}"
           f"{'trend':>9}{'change':>9}{'% of mean':>11}{'power':>8}")
