@@ -39,8 +39,17 @@ def coverage(d):
     return n(m).values, {k: v.values for k, v in cov.items()}
 
 
+# One colour per agency, held fixed across the paper. Validated for
+# colour-vision deficiency: worst adjacent pair dE 9.5 (protan), 23.5 (tritan),
+# 25.5 (normal vision). Every line is also labelled in the legend, so identity
+# is never carried by colour alone.
+AGENCY_COLOUR = {"JMA": "#C8940A",    # golden orange
+                 "CMA": "#A32020",    # red
+                 "JTWC": "#1F6FB2",   # blue
+                 "HKO": "#D673A8"}    # pink
+
+
 def fig1(dom, out):
-    ramp = plt.get_cmap("Blues")(np.linspace(0.40, 0.95, 4))
     fig, ax = plt.subplots(2, 2, figsize=(10.4, 5.7))
     for j, name in enumerate(["WNP basin", "PAR"]):
         tot, cov = dom[name]
@@ -48,12 +57,13 @@ def fig1(dom, out):
         a.fill_between(YEARS, tot, color="#DFDFDF", lw=0)
         a.plot(YEARS, tot, color="#333333", lw=.85)
         a.set_xlim(FIRST, LAST); a.set_ylim(0, 58 if j == 0 else 40)
-        a.set_title(f"({'ab'[j]})  {name}, all track entries", loc="left", fontsize=9.5)
+        a.set_title(f"({'ab'[j]})  {name}, main-track storms", loc="left", fontsize=9.5)
         a.set_xlabel("Year", fontsize=9)
         if j == 0:
             a.set_ylabel("Storms per year")
         b = ax[1, j]
-        for c, k in zip(ramp, ["HKO", "JMA", "CMA", "JTWC"]):
+        for k in ["JTWC", "CMA", "JMA", "HKO"]:
+            c = AGENCY_COLOUR[k]
             share = 100 * np.where(tot > 0, cov[k] / np.maximum(tot, 1), np.nan)
             sm = np.convolve(share, np.ones(9) / 9, mode="same")
             b.plot(YEARS[4:-4], sm[4:-4], color=c, lw=1.9, label=k)
@@ -87,11 +97,13 @@ def fig2(R, out):
             p.plot(g.start, g.lo, color=c, lw=.7, ls=(0, (3, 2)), alpha=.75)
             p.plot(g.start, g.hi, color=c, lw=.7, ls=(0, (3, 2)), alpha=.75)
             p.plot(g.start, g.slope, color=c, lw=1.9, label=dom, zorder=4)
-            sig = g[g.verdict == "-"]
-            p.plot(sig.start, sig.slope, "o", ms=4.0, color=c, mec="white", mew=.7, zorder=5)
+            dec = g[g.verdict == "-"]
+            p.plot(dec.start, dec.slope, "o", ms=4.0, color=c, mec="white", mew=.7, zorder=5)
+            inc = g[g.verdict == "+"]
+            p.plot(inc.start, inc.slope, "^", ms=6.0, color=c, mec="white", mew=.8, zorder=6)
         p.axhline(0, color="#666666", lw=.8)
         p.set_title(a, loc="left", fontsize=9.5)
-        p.set_ylim(-0.40, 0.24); p.set_xlim(1951, 2000)
+        p.set_ylim(-0.42, 0.30); p.set_xlim(1949.5, 2001.5)
         for s in ("top", "right"):
             p.spines[s].set_visible(False)
         p.tick_params(labelsize=8)
@@ -102,8 +114,8 @@ def fig2(R, out):
     h, l = ax[0, 0].get_legend_handles_labels()
     fig.legend(h, l, fontsize=8.6, frameon=False, ncol=2, loc="upper left",
                bbox_to_anchor=(0.075, 1.055), handlelength=1.6, columnspacing=1.6)
-    fig.text(0.40, 1.032,
-             "dashed: no-trend band          filled circles: significant decline",
+    fig.text(0.30, 1.032,
+             "dashed: no-trend band     circle: significant decline     triangle: significant increase",
              fontsize=8.2, color="#444444")
     plt.tight_layout(pad=.6, w_pad=1.3, h_pad=1.2)
     for ext in ("pdf", "png"):

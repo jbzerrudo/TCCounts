@@ -4,7 +4,7 @@ and fit each one.
 
 Three choices enter any such trend, and no convention settles any of them:
 
-    agency set     which operational agencies must have graded a storm
+    grading req.   which operational agencies must have graded a storm
                    for it to count (6 options, including the raw total
                    that asks for no intensity at all)
     counting rule  which track entries constitute a storm (4 options)
@@ -12,23 +12,23 @@ Three choices enter any such trend, and no convention settles any of them:
                    1951 to 2000; every window ends in 2023)
 
 6 x 4 x 50 = 1,200 specifications per domain, fitted for the western North
-Pacific basin and again for the PAR polygon, so 2,400 in total. Each is
-tested against its own circular block bootstrap null.
+Pacific basin and again for the PAR polygon, so 2,400 in total. Each slope is
+tested against zero using a standard error corrected for serial dependence.
 
 Usage
     python src/multiverse.py ibtracs.WP.list.v04r01.csv par_clipped.csv \
                              data/multiverse.csv
 """
 import sys
+
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 FIRST, LAST = 1884, 2023
 STARTS = range(1951, 2001)
-SEED, NB, BLOCK = 41, 3000, 10
 AGENCIES = ["raw total", "all four", "JMA+JTWC+CMA", "JMA", "JMA+JTWC", "JTWC"]
 YEARS = list(range(FIRST, LAST + 1))
-rng = np.random.default_rng(SEED)
 
 
 def num(df, col):
@@ -39,7 +39,8 @@ def counting_rules(d):
     """The four ways of deciding which track entries constitute a storm."""
     main = d[d.TRACK_TYPE == "main"]
     fixes = main.groupby("SID").size()
-    trop = main.groupby("SID").NATURE.agg(lambda v: bool(set(v) & {"TS", "DS"}))
+    # IBTrACS NATURE: TS is tropical, DS is disturbance, so a tropical stage is TS alone.
+    trop = main.groupby("SID").NATURE.agg(lambda v: "TS" in set(v))
     return {"all SIDs": d,
             "main track": main,
             ">=2 fixes": main[main.SID.isin(fixes[fixes >= 2].index)],
@@ -63,20 +64,36 @@ def annual(d, mask):
             .reindex(YEARS).fillna(0).astype(int))
 
 
-def fit(s, L=BLOCK, nb=NB):
-    """OLS slope, and the 2.5th to 97.5th percentile band of slopes from a
-    circular block bootstrap that destroys any trend while preserving
-    short-range dependence. A slope outside the band is distinguishable
-    from zero."""
+def fit(s, key=None):
+    """OLS slope, its standard error corrected for serial dependence, and a
+    verdict at the 5% level.
+
+    The correction follows the standard effective-sample-size approach: the
+    lag-one autocorrelation of the residuals about the fitted line reduces the
+    number of independent observations to n(1-r)/(1+r), and the standard error
+    and degrees of freedom are scaled accordingly.
+
+    This replaces a circular block bootstrap used in an earlier version of this
+    work. That test was measured, on synthetic series with no trend, to reject
+    at 10 to 15 percent against a nominal 5 percent, because residuals that are
+    orthogonal to the year index by construction lose variance when resampled in
+    long blocks. The estimator below was measured at 4.3 percent for serially
+    independent counts, 6.6 percent at a lag-one autocorrelation of 0.33, and
+    9.1 percent at 0.50. See src/size.py.
+    """
     v = np.asarray(s, float)
     x = np.asarray(s.index, float)
     xc = x - x.mean()
     den = (xc ** 2).sum()
     n = len(v)
     slope = (v @ xc) / den
-    starts = rng.integers(0, n, size=(nb, int(np.ceil(n / L))))
-    idx = (starts[:, :, None] + np.arange(L)[None, None, :]).reshape(nb, -1)[:, :n] % n
-    lo, hi = np.percentile((v[idx] @ xc) / den, [2.5, 97.5])
+    resid = v - np.poly1d(np.polyfit(x, v, 1))(x)
+    r1 = np.corrcoef(resid[:-1], resid[1:])[0, 1]
+    r1 = min(max(r1, 0.0), 0.99)
+    n_eff = max(n * (1 - r1) / (1 + r1), 4.0)
+    se = np.sqrt((resid @ resid) / (n - 2) / den) * np.sqrt(n / n_eff)
+    crit = stats.t.ppf(0.975, max(n_eff - 2, 1))
+    lo, hi = -crit * se, crit * se
     return slope, lo, hi, ("+" if slope > hi else "-" if slope < lo else "0")
 
 
