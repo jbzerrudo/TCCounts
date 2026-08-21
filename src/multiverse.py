@@ -75,11 +75,14 @@ def fit(s, key=None):
 
     This replaces a circular block bootstrap used in an earlier version of this
     work. That test was measured, on synthetic series with no trend, to reject
-    at 10 to 15 percent against a nominal 5 percent, because residuals that are
+    at 12 to 15 percent against a nominal 5 percent, because residuals that are
     orthogonal to the year index by construction lose variance when resampled in
-    long blocks. The estimator below was measured at 4.3 percent for serially
-    independent counts, 6.6 percent at a lag-one autocorrelation of 0.33, and
-    9.1 percent at 0.50. See src/size.py.
+    long blocks. The estimator below was measured on a 73-year window at 3.9
+    percent for serially independent counts, 5.3 percent at the PAR's lag-one
+    autocorrelation of 0.03, and 7.0 percent at the basin's 0.33. It grows
+    liberal on short windows with strong serial dependence, reaching 11.7
+    percent at 24 years and a lag-one autocorrelation of 0.33.
+    See src/validate.py.
     """
     v = np.asarray(s, float)
     x = np.asarray(s.index, float)

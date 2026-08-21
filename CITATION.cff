@@ -1,7 +1,14 @@
 cff-version: 1.2.0
-version: 2.0.0
-message: "If you use this software or the derived series, please cite it as below."
-title: "TCCounts: specification uncertainty in western North Pacific and Philippine tropical cyclone count trends"
+version: 3.0.0
+message: "If you use this software or the derived data, please cite it as below."
+title: "TCCounts: enumerating the specification space of western North Pacific and Philippine Area of Responsibility tropical cyclone count trends"
+abstract: >-
+  Recomputes tropical cyclone counts from the IBTrACS v04r01 western North
+  Pacific archive for the basin and for the PAGASA Philippine Area of
+  Responsibility hexagon, fits a linear trend under every combination of six
+  grading requirements, four counting rules and fifty start years, and traces
+  the resulting disagreement to growth in the share of storms each operational
+  agency graded across the record.
 authors:
   - family-names: Zerrudo
     given-names: Jef
@@ -14,4 +21,5 @@ keywords:
   - specification uncertainty
   - best-track homogeneity
   - Philippine Area of Responsibility
+  - trend detection
   - IBTrACS

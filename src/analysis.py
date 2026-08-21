@@ -154,6 +154,15 @@ for dom, vals in [("WNP basin", (40.7, 29.1, 2.9)), ("PAR", (38.3, 33.3, 0.7))]:
     ok(f"{dom}: effective dimensionality of the six requirements",
        (ev.sum() ** 2) / (ev ** 2).sum(), 1.8, .05)
 
+print("\n--- Section 2, overlap between requirements ---")
+for dom, sl, vd in [("WNP basin", 73, 199), ("PAR", 66, 197)]:
+    a = R[(R.domain == dom) & (R.agency == "raw total")].sort_values(["rule", "start"])
+    b = R[(R.domain == dom) & (R.agency == "all four")].sort_values(["rule", "start"])
+    ok(f"{dom}: raw total and all four, identical slopes",
+       (np.abs(a.slope.values - b.slope.values) < 1e-12).sum(), sl)
+    ok(f"{dom}: raw total and all four, identical verdicts",
+       (a.verdict.values == b.verdict.values).sum(), vd)
+
 print("\n--- Section 4, the intersection sets ---")
 if PAR:
     _d = pd.read_csv(PAR, low_memory=False)
@@ -190,6 +199,148 @@ if PAR:
        sum(int((num(_pre, c) > 0).sum()) for c in _int), 0)
     ok("TRACK_TYPE values are main plus spurs only",
        set(_d.TRACK_TYPE.unique()) <= {"main", "spur-merge", "spur-split", "spur-other"}, True)
+
+print("\n--- Section 2, dispersion and serial dependence of the counts ---")
+
+
+def _fit(c):
+    """The estimator from multiverse.py: slope and verdict at the 5% level."""
+    v = np.asarray(c, float)
+    x = np.asarray(c.index, float)
+    xc = x - x.mean()
+    den = (xc ** 2).sum()
+    n = len(v)
+    slope = (v @ xc) / den
+    resid = v - np.poly1d(np.polyfit(x, v, 1))(x)
+    r1 = min(max(np.corrcoef(resid[:-1], resid[1:])[0, 1], 0.0), 0.99)
+    ne = max(n * (1 - r1) / (1 + r1), 4.0)
+    se = np.sqrt((resid @ resid) / (n - 2) / den) * np.sqrt(n / ne)
+    from scipy import stats as _st
+    crit = _st.t.ppf(0.975, max(ne - 2, 1))
+    return slope, ("+" if slope > crit * se else "-" if slope < -crit * se else "0")
+
+
+def _r1(c):
+    v = np.asarray(c, float)
+    x = np.asarray(c.index, float)
+    r = v - np.poly1d(np.polyfit(x, v, 1))(x)
+    return np.corrcoef(r[:-1], r[1:])[0, 1]
+
+
+_DOM = {}
+if PAR:
+    _DOM["PAR"] = pd.read_csv(PAR, low_memory=False)
+if WNP:
+    _DOM["WNP basin"] = pd.read_csv(WNP, low_memory=False, skiprows=[1])
+
+for _dom, _raw in _DOM.items():
+    _raw = _raw[(_raw.SEASON >= 1884) & (_raw.SEASON <= 2023)]
+    _mn = _raw[_raw.TRACK_TYPE == "main"]
+    _gc = "TOKYO_GRADE" if "TOKYO_GRADE" in _mn.columns else "TOK_GRADE"
+    _msk = {"JMA": num(_mn, _gc).isin([2, 3, 4, 5, 9]), "JTWC": num(_mn, "USA_WIND") > 0,
+            "CMA": num(_mn, "CMA_WIND") > 0, "HKO": num(_mn, "HKO_WIND") > 0}
+    _tot = counts(_mn).loc[1951:2023]
+    _v = np.asarray(_tot, float)
+    ok(f"{_dom}: variance-to-mean ratio of the counts 1951-2023",
+       _v.var(ddof=1) / _v.mean(), 1.37 if _dom == "WNP basin" else 1.01, .006)
+    ok(f"{_dom}: lag-one autocorrelation of the detrended counts",
+       _r1(_tot), 0.33 if _dom == "WNP basin" else 0.03, .006)
+
+print("\n--- Section 3.4 and 4, single-agency counts and the coverage mechanism ---")
+_WANT_SLOPE = {"WNP basin": {"CMA": (-0.166, "-"), "HKO": (0.203, "0"), "JTWC": (0.077, "0")},
+               "PAR": {"CMA": (-0.091, "-"), "HKO": (0.135, "0"), "JTWC": (0.044, "+")}}
+_WANT_COV = {"WNP basin": {"JTWC": 0.59, "HKO": 0.97, "CMA": -0.04},
+             "PAR": {"JTWC": 0.59, "HKO": 0.94, "CMA": 0.02}}
+_WANT_DECOMP = {"WNP basin": {"JTWC": (-0.137, 0.208), "HKO": (-0.120, 0.338), "CMA": (-0.152, -0.015)}}
+_WANT_NSTART = {"WNP basin": {"CMA": 37}, "PAR": {"CMA": 26}}
+_WANT_INTER = {"WNP basin": (-0.010, 0.196), "PAR": (-0.004, 0.133)}
+
+for _dom, _raw in _DOM.items():
+    _raw = _raw[(_raw.SEASON >= 1884) & (_raw.SEASON <= 2023)]
+    _mn = _raw[_raw.TRACK_TYPE == "main"]
+    _gc = "TOKYO_GRADE" if "TOKYO_GRADE" in _mn.columns else "TOK_GRADE"
+    _msk = {"JMA": num(_mn, _gc).isin([2, 3, 4, 5, 9]), "JTWC": num(_mn, "USA_WIND") > 0,
+            "CMA": num(_mn, "CMA_WIND") > 0, "HKO": num(_mn, "HKO_WIND") > 0}
+    _totall = counts(_mn)
+    _T = np.asarray(_totall.loc[1951:2023], float)
+    _x = np.arange(1951, 2024, dtype=float)
+    _bT = np.polyfit(_x, _T, 1)[0]
+    for _a in ("JTWC", "CMA", "HKO"):
+        _c = counts(_mn, _msk[_a])
+        _sl, _vd = _fit(_c.loc[1951:2023])
+        if _a in _WANT_SLOPE[_dom]:
+            _w, _wv = _WANT_SLOPE[_dom][_a]
+            ok(f"{_dom}, {_a} alone, slope 1951-2023", _sl, _w, .0006)
+            ok(f"{_dom}, {_a} alone, verdict 1951-2023", _vd == _wv, True)
+        _sh = 100 * np.asarray(_c.loc[1951:2023], float) / _T
+        ok(f"{_dom}: {_a} coverage trend, percentage points per year",
+           np.polyfit(_x, _sh, 1)[0], _WANT_COV[_dom][_a], .006)
+        if _dom in _WANT_DECOMP:
+            _wt, _wc = _WANT_DECOMP[_dom][_a]
+            _s = np.asarray(_c.loc[1951:2023], float) / _T
+            ok(f"{_dom}: {_a} count trend, term from the falling total",
+               _s.mean() * _bT, _wt, .0006)
+            ok(f"{_dom}: {_a} count trend, term from the rising share",
+               _T.mean() * np.polyfit(_x, _s, 1)[0], _wc, .0006)
+        if _a in _WANT_NSTART[_dom]:
+            _n = sum(_fit(_c.loc[y:2023])[1] == "-" for y in range(1951, 2001))
+            ok(f"{_dom}: {_a} alone, start years with a significant decline",
+               _n, _WANT_NSTART[_dom][_a])
+    _sid = {k: set(_mn[v].SID.unique()) for k, v in _msk.items()}
+    _i3 = _sid["JMA"] & _sid["JTWC"] & _sid["CMA"]
+    _i4 = _i3 & _sid["HKO"]
+    for _lab, _ss, _w in [("JMA, JTWC and CMA", _i3, _WANT_INTER[_dom][0]),
+                          ("all four including HKO", _i4, _WANT_INTER[_dom][1])]:
+        ok(f"{_dom} intersection, {_lab}, slope 1951-2023",
+           _fit(counts(_mn, _mn.SID.isin(_ss)).loc[1951:2023])[0], _w, .0006)
+    ok(f"{_dom} four-way intersection, zero years 1951-1960",
+       (counts(_mn, _mn.SID.isin(_i4)).loc[1951:1960] == 0).sum(), 10)
+
+print("\n--- Section 4, the longest window and what survives the strictest exclusion ---")
+for _dom, _dec, _non, _inc in [("WNP basin", 12, 12, 0), ("PAR", 12, 11, 1)]:
+    _g = R[(R.domain == _dom) & (R.start == 1951)]
+    ok(f"{_dom}: specifications beginning in 1951", len(_g), 24)
+    ok(f"{_dom}: of those, significant declines", (_g.verdict == "-").sum(), _dec)
+    ok(f"{_dom}: of those, no detectable trend", (_g.verdict == "0").sum(), _non)
+    ok(f"{_dom}: of those, significant increases", (_g.verdict == "+").sum(), _inc)
+    _cma = _g[_g.agency.isin(["JMA+JTWC+CMA", "all four", "raw total"])]
+    _jj = _g[_g.agency.isin(["JMA", "JMA+JTWC", "JTWC"])]
+    ok(f"{_dom}: at 1951, requirements admitting CMA or no grade that decline",
+       (_cma.verdict == "-").sum(), 12)
+    ok(f"{_dom}: at 1951, requirements restricted to JMA and JTWC that decline",
+       (_jj.verdict == "-").sum(), 0)
+    _rt = R[(R.domain == _dom) & (R.agency == "raw total") & (R.rule == "main track") & (R.start == 1951)].slope.iloc[0]
+    _af = R[(R.domain == _dom) & (R.agency == "all four") & (R.rule == "main track") & (R.start == 1951)].slope.iloc[0]
+    ok(f"{_dom}: share of the slope surviving the removal of ungraded storms (%)",
+       100 * _af / _rt, 80 if _dom == "WNP basin" else 71, 0.6)
+ok("windows beginning after 1990 are shorter than 34 years", 2023 - 1991 + 1, 33)
+
+print("\n--- Section 2, the study-area map ---")
+if WNP:
+    from matplotlib.path import Path as _MPath   # same test clip_par.py uses
+    _V = [(115, 5), (115, 15), (120, 21), (120, 25), (135, 25), (135, 5)]
+    _hex = _MPath(_V)
+    _b = pd.read_csv(WNP, low_memory=False, skiprows=[1],
+                     usecols=["SID", "SEASON", "LAT", "LON", "TRACK_TYPE"])
+    _b = _b[(_b.SEASON >= 1884) & (_b.SEASON <= 2023) & (_b.TRACK_TYPE == "main")].copy()
+    _b["LAT"] = pd.to_numeric(_b.LAT, errors="coerce")
+    _b["LON"] = pd.to_numeric(_b.LON, errors="coerce")
+    _b = _b.dropna(subset=["LAT", "LON"])
+    _box = _b[(_b.LAT >= 5) & (_b.LAT <= 25) & (_b.LON >= 115) & (_b.LON <= 135)]
+    _in = _hex.contains_points(np.c_[_box.LON.values, _box.LAT.values], radius=-1e-9)
+    _bs, _hs = set(_box.SID.unique()), set(_box.SID.values[_in])
+    ok("storms a bounding box admits that the PAR excludes", len(_bs - _hs), 129)
+    ok("storms inside the PAR hexagon, cross-check", len(_hs), 2757)
+    ok("that overshoot as a percentage of the PAR count",
+       100 * len(_bs - _hs) / len(_hs), 4.7, .05)
+    _lon = _b.LON.to_numpy(float) % 360
+    _lat = _b.LAT.to_numpy(float)
+    _fx, _fy = np.floor(_lon - 100).astype(int), np.floor(_lat - 0).astype(int)
+    _fr = (_fx >= 0) & (_fx < 80) & (_fy >= 0) & (_fy < 55)   # same binning as the figure
+    ok("percentage of basin fixes inside the map frame", 100 * _fr.mean(), 97.5, .05)
+    _pr = pd.DataFrame({"c": _fx[_fr] * 1000 + _fy[_fr],
+                        "s": _b.SID.to_numpy()[_fr]}).drop_duplicates()
+    ok("storms in the densest 1-degree cell of the map", _pr.groupby("c").size().max(), 196)
 
 print("\n%d checks run, %d failed." % (N[0], FAIL[0]))
 sys.exit(1 if FAIL[0] else 0)

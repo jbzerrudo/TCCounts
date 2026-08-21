@@ -1,7 +1,7 @@
 {
-  "title": "TCCounts: specification uncertainty in western North Pacific and Philippine tropical cyclone count trends",
-  "description": "Scripts and derived data behind an enumeration of the analytical choices that enter a fitted trend in tropical cyclone counts. Clips IBTrACS to the PAGASA Philippine Area of Responsibility hexagon, then fits a linear trend under every combination of six agency sets, four counting rules and fifty start years, for the western North Pacific basin and for the PAR, with a circular block bootstrap null for each of the 2,400 resulting specifications. Reproduces every value reported in the accompanying manuscript through 96 automated checks. Supersedes the v1 classified-versus-unclassified decomposition.",
-  "version": "2.0.0",
+  "title": "TCCounts: enumerating the specification space of western North Pacific and Philippine Area of Responsibility tropical cyclone count trends",
+  "description": "Scripts and derived data behind an enumeration of every defensible specification of a tropical cyclone count trend in the western North Pacific basin and the PAGASA Philippine Area of Responsibility, 1884 to 2023. Clips IBTrACS v04r01 to the PAR hexagon, fits and tests a linear trend under all 2,400 combinations of six grading requirements, four counting rules and fifty start years, measures the size and power of the significance test by simulation, and reproduces every value reported in the accompanying manuscript through an automated check suite.",
+  "version": "3.0.0",
   "upload_type": "software",
   "license": "MIT",
   "creators": [
@@ -16,6 +16,7 @@
     "specification uncertainty",
     "best-track homogeneity",
     "Philippine Area of Responsibility",
+    "trend detection",
     "IBTrACS"
   ]
 }
