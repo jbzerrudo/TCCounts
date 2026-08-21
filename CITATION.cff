@@ -1,7 +1,7 @@
 cff-version: 1.2.0
-version: 1.4.0
+version: 2.0.0
 message: "If you use this software or the derived series, please cite it as below."
-title: "TCCounts: archive-curation decomposition of Philippine Area of Responsibility tropical cyclone counts"
+title: "TCCounts: specification uncertainty in western North Pacific and Philippine tropical cyclone count trends"
 authors:
   - family-names: Zerrudo
     given-names: Jef
@@ -11,6 +11,7 @@ repository-code: "https://github.com/jbzerrudo/TCCounts"
 license: MIT
 keywords:
   - tropical cyclone frequency
-  - Philippine Area of Responsibility
+  - specification uncertainty
   - best-track homogeneity
+  - Philippine Area of Responsibility
   - IBTrACS

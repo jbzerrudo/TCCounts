@@ -1,7 +1,7 @@
 {
-  "title": "TCCounts: archive-curation decomposition of Philippine Area of Responsibility tropical cyclone counts",
-  "description": "Scripts and derived annual series behind the analysis of tropical cyclone counts entering the Philippine Area of Responsibility, 1884-2023. Clips IBTrACS to the PAGASA PAR hexagon, splits each year's storms into those an operational agency classified by intensity and those carried as position-only track entries, and reproduces every value reported in the accompanying manuscript.",
-  "version": "1.4.0",
+  "title": "TCCounts: specification uncertainty in western North Pacific and Philippine tropical cyclone count trends",
+  "description": "Scripts and derived data behind an enumeration of the analytical choices that enter a fitted trend in tropical cyclone counts. Clips IBTrACS to the PAGASA Philippine Area of Responsibility hexagon, then fits a linear trend under every combination of six agency sets, four counting rules and fifty start years, for the western North Pacific basin and for the PAR, with a circular block bootstrap null for each of the 2,400 resulting specifications. Reproduces every value reported in the accompanying manuscript through 96 automated checks. Supersedes the v1 classified-versus-unclassified decomposition.",
+  "version": "2.0.0",
   "upload_type": "software",
   "license": "MIT",
   "creators": [
@@ -13,9 +13,9 @@
   ],
   "keywords": [
     "tropical cyclone frequency",
-    "Philippine Area of Responsibility",
+    "specification uncertainty",
     "best-track homogeneity",
-    "observing-system bias",
+    "Philippine Area of Responsibility",
     "IBTrACS"
   ]
 }
