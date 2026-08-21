@@ -23,12 +23,34 @@ rule barely matters.
 
 ## Pipeline
 
+Set `WNP` to wherever you saved the IBTrACS archive; it is not in this repository
+and does not have to sit in the repository root.
+
+Linux or macOS:
+
 ```
-python src/clip_par.py  ibtracs.WP.list.v04r01.csv  par_clipped.csv
-python src/multiverse.py ibtracs.WP.list.v04r01.csv par_clipped.csv data/multiverse.csv
-python src/figures.py    par_clipped.csv ibtracs.WP.list.v04r01.csv data/multiverse.csv figures/
-python src/analysis.py   data/multiverse.csv par_clipped.csv ibtracs.WP.list.v04r01.csv
+WNP=/path/to/ibtracs.WP.list.v04r01.csv
+
+python src/clip_par.py   "$WNP" par_clipped.csv
+python src/multiverse.py "$WNP" par_clipped.csv data/multiverse.csv
+python src/figures.py    par_clipped.csv "$WNP" data/multiverse.csv figures/
+python src/analysis.py   data/multiverse.csv par_clipped.csv "$WNP"
 ```
+
+Windows `cmd`:
+
+```
+set WNP=C:\path\to\ibtracs.WP.list.v04r01.csv
+
+python src\clip_par.py   "%WNP%" par_clipped.csv
+python src\multiverse.py "%WNP%" par_clipped.csv data\multiverse.csv
+python src\figures.py    par_clipped.csv "%WNP%" data\multiverse.csv figures/
+python src\analysis.py   data\multiverse.csv par_clipped.csv "%WNP%"
+```
+
+The output directory argument to `figures.py` must end in a separator, and forward
+slashes are safest on Windows, since a trailing backslash inside quotes escapes the
+quote in `cmd`.
 
 The last line must print `96 checks run, 0 failed`. Every number quoted in the
 manuscript is recomputed there and compared against the value in the text.
