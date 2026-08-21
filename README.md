@@ -1,84 +1,89 @@
 # TCCounts
 
-Annual counts of tropical cyclones entering the Philippine Area of Responsibility
-(PAR) are reported to be declining. This repository shows that the direction and
-significance of that trend are set by the analyst's choice of start year acting on
-an archive of changing completeness, and gives you everything needed to check the
-claim from the public IBTrACS record.
+Specification uncertainty in western North Pacific and Philippine tropical cyclone
+count trends.
 
-## The result in one table
+Fitting a linear trend to an annual tropical cyclone count requires three choices
+that no convention settles:
 
-Split each year's PAR storms into two classes: those an operational agency ever
-classified for intensity, and those carried as a position on a map and nothing else.
-The two classes partition the total, so their trends sum to the total's trend exactly.
+| choice | options |
+|---|---|
+| **agency set** — which agencies must have graded a storm for it to count | JTWC; JMA; JMA+JTWC; +CMA; all four; raw total |
+| **counting rule** — which track entries constitute a storm | all SIDs; main track; main track with 2 or more fixes; main track, tropical nature |
+| **start year** — the first year of the fitted window | 1951 to 2000, all windows ending 2023 |
 
-Fit the raw count over windows that all end in 2023 but begin anywhere from 1884 to 2000:
+6 x 4 x 50 = 1,200 specifications per domain, fitted for the western North Pacific
+basin and again for the PAGASA Philippine Area of Responsibility (PAR), so 2,400
+in total. Each is tested against its own circular block bootstrap null.
 
-| | range of OLS slope | significant increase | significant decrease |
-|---|---|---|---|
-| **all track entries** | +0.058 to −0.146 storms yr⁻¹ | 4 of 59 start years | 16 of 59 start years |
-| **classified only** | −0.056 to +0.101 storms yr⁻¹ | 0 of 25 | 0 of 25 |
+**Result.** 42% of basin specifications and 30% of PAR specifications return a
+significant decline; the rest return no detectable trend. Not one of the 2,400
+returns a significant increase. Agency choice dominates the outcome; the counting
+rule barely matters.
 
-Same archive, same domain, same estimator, opposite conclusions.
-
-The mechanism is compositional:
-
-| period | all entries | classified | unclassified | unclassified share |
-|---|---|---|---|---|
-| 1884–1922 | 14.9 | 0.0 | 14.9 | 100% |
-| 1923–1944 | 19.3 | 0.0 | 19.3 | 100% |
-| 1945–1950 | 21.0 | 14.7 | 6.3 | 30% |
-| 1951–1976 | 25.1 | 18.6 | 6.5 | 26% |
-| 1977–2000 | 22.1 | 20.0 | 2.1 | 10% |
-| 2001–2023 | 19.3 | 18.9 | 0.4 | 2% |
-
-No PAR storm before 1945 carries intensity information from any agency: zero of 1,004.
-
-Spur tracks are excluded. IBTrACS gives a diverging agency track its own storm identifier, so
-counting every SID double-counts those storms; 43 PAR identifiers are spur-only.
-JTWC reporting begins in 1945, JMA grading in 1951, WMO winds in 1977.
-
-## Reproducing it
-
-```bash
-pip install -r requirements.txt
-
-# 1. get IBTrACS WP v04r01 from NOAA NCEI (see data/README.md), then:
-python src/clip_par.py ibtracs.WP.list.v04r01.csv par_clipped.csv
-python src/build_series.py par_clipped.csv data/par_annual_series.csv
-
-# 2. recompute and check every number quoted in the manuscript
-python src/analysis.py data/par_annual_series.csv data/start_year_sweep.csv par_clipped.csv
-
-# 3. redraw the figure
-python src/figure.py data/par_annual_series.csv figures/
-```
-
-`analysis.py` prints `OK` or `MISMATCH` beside each value and runs 129 checks covering
-every number in the manuscript: trends, no-trend bands, R-squared, the start-year sweep,
-the detection-threshold power analysis, both forecast horizons, and the counting-rule
-sensitivity. It exits non-zero if any check fails. If you get one, the IBTrACS revision has moved and the
-manuscript numbers need restating; shipping the check rather than the result is the point.
-
-Step 1 needs the raw archive. Steps 2 and 3 run from `data/` alone, which is in this
-repository, so the analysis is verifiable without downloading anything.
-
-## Layout
+## Pipeline
 
 ```
-src/clip_par.py        IBTrACS WP  ->  PAR-clipped fixes (hexagon, not bounding box)
-src/build_series.py    PAR-clipped ->  annual series, 1884-2023
-src/analysis.py        every manuscript number, each checked
-src/figure.py          Figure 1
-data/                  derived series, start-year sweep, backtest, provenance notes
-figures/               Figure 1 as PDF
+python src/clip_par.py  ibtracs.WP.list.v04r01.csv  par_clipped.csv
+python src/multiverse.py ibtracs.WP.list.v04r01.csv par_clipped.csv data/multiverse.csv
+python src/figures.py    par_clipped.csv ibtracs.WP.list.v04r01.csv data/multiverse.csv figures/
+python src/analysis.py   data/multiverse.csv par_clipped.csv ibtracs.WP.list.v04r01.csv
 ```
 
-## Citing
+The last line must print `96 checks run, 0 failed`. Every number quoted in the
+manuscript is recomputed there and compared against the value in the text.
 
-See `CITATION.cff`. The archived release carries a DOI via Zenodo.
+`multiverse.py` takes about 40 seconds. The whole pipeline runs in under two minutes.
+
+## Input
+
+`ibtracs.WP.list.v04r01.csv`, the western North Pacific CSV export of IBTrACS
+version 4 revision 1, from NOAA NCEI:
+<https://www.ncei.noaa.gov/products/international-best-track-archive>
+
+It is not redistributed here, and `par_clipped.csv` is a derived intermediate that
+`.gitignore` excludes. Both regenerate from the command above.
+
+## Files
+
+```
+src/clip_par.py    clips IBTrACS to the PAR hexagon (a six-vertex polygon,
+                   not a bounding box; the boundary is treated as inside)
+src/multiverse.py  enumerates and fits all 2,400 specifications
+src/figures.py     regenerates Fig 1 and Fig 2
+src/analysis.py    recomputes every manuscript value and checks it
+
+data/multiverse.csv  one row per specification: domain, rule, agency, start
+                     year, slope, bootstrap band, verdict
+figures/Fig1.pdf     annual counts and agency coverage, both domains
+figures/Fig2.pdf     slope against start year, one panel per agency set
+```
+
+## Notes on counting
+
+IBTrACS assigns a separate identifier to an agency track that diverges from the
+primary one, and its documentation lists such spurs among the reasons to exercise
+care when counting. That is why the counting rule is enumerated rather than fixed.
+
+JMA grades 2, 3, 4, 5 and 9 denote Tropical Depression, Tropical Storm, Severe
+Tropical Storm, Typhoon and a tropical cyclone of Tropical Storm intensity or
+higher. Grade 6 is extratropical and grade 7 marks a system just entering the JMA
+area of responsibility, so neither counts as a grade here.
+
+The NCEI CSV names the column `TOKYO_GRADE`; some shapefile exports shorten it to
+`TOK_GRADE`. Both are accepted.
+
+## Version history
+
+- **v2.0.0** — specification-curve analysis. Supersedes v1.
+- **v1.4.0** — classified-versus-unclassified decomposition of the PAR count.
+  Preserved on Zenodo; its scripts were removed at v2.0.0.
+
+## Citation
+
+Archived at <https://doi.org/10.5281/zenodo.22026010> (concept DOI, always resolves
+to the latest version). See `CITATION.cff`.
 
 ## License
 
-MIT for the code. The derived series in `data/` are a transformation of IBTrACS,
-which is a US Government work in the public domain; cite Knapp et al. (2010).
+MIT.
