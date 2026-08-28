@@ -1,12 +1,11 @@
 """
 Regenerate both manuscript figures from the archived data.
 
-    Fig 2  counts and agency coverage, basin and PAR
-    Fig 3  the specification curve over all 2,400 fits
+    Fig 3  counts and agency coverage, basin and PAR
+    Fig 4  the specification curve over all 2,400 fits
 
 Usage
-    python src/figures.py par_clipped.csv ibtracs.WP.list.v04r01.csv \
-                          data/multiverse.csv figures/
+    python src/figures.py par_clipped.csv ibtracs.WP.list.v04r01.csv data/multiverse.csv figures/
 """
 import sys
 import matplotlib
@@ -56,7 +55,7 @@ def fig1(dom, out):
         a = ax[0, j]
         a.fill_between(YEARS, tot, color="#DFDFDF", lw=0)
         a.plot(YEARS, tot, color="#333333", lw=.85)
-        a.set_xlim(FIRST, LAST); a.set_ylim(0, 58 if j == 0 else 40)
+        a.set_xlim(FIRST, LAST); a.set_ylim(0, 58)   # shared across (a) and (b): same quantity, comparable amplitude
         a.set_title(f"({'ab'[j]})  {name}, main-track storms", loc="left", fontsize=9.5)
         a.set_xlabel("Year", fontsize=9)
         if j == 0:
@@ -81,7 +80,7 @@ def fig1(dom, out):
             p.tick_params(labelsize=8)
     plt.tight_layout(pad=.6, w_pad=1.9, h_pad=1.4)
     for ext in ("pdf", "png"):
-        plt.savefig(f"{out}Fig2.{ext}", dpi=190, bbox_inches="tight")
+        plt.savefig(f"{out}Fig3_counts.{ext}", dpi=190, bbox_inches="tight")
     plt.close()
 
 
@@ -119,7 +118,7 @@ def fig2(R, out):
              fontsize=8.2, color="#444444")
     plt.tight_layout(pad=.6, w_pad=1.3, h_pad=1.2)
     for ext in ("pdf", "png"):
-        plt.savefig(f"{out}Fig3.{ext}", dpi=185, bbox_inches="tight")
+        plt.savefig(f"{out}Fig4_curve.{ext}", dpi=185, bbox_inches="tight")
     plt.close()
 
 
@@ -132,7 +131,7 @@ def main():
            "PAR": coverage(pd.read_csv(par, low_memory=False))}
     fig1(dom, out)
     fig2(pd.read_csv(mvf), out)
-    print(f"written: {out}Fig2.pdf, {out}Fig3.pdf")
+    print(f"written: {out}Fig3_counts.pdf, {out}Fig4_curve.pdf")
 
 
 if __name__ == "__main__":

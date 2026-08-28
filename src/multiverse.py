@@ -16,8 +16,7 @@ Pacific basin and again for the PAR polygon, so 2,400 in total. Each slope is
 tested against zero using a standard error corrected for serial dependence.
 
 Usage
-    python src/multiverse.py ibtracs.WP.list.v04r01.csv par_clipped.csv \
-                             data/multiverse.csv
+    python src/multiverse.py ibtracs.WP.list.v04r01.csv par_clipped.csv data/multiverse.csv
 """
 import sys
 

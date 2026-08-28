@@ -7,8 +7,7 @@ in Section 4. Counting follows multiverse.py exactly: main-track identifiers
 only, one row per season and domain.
 
 Usage
-    python src/coverage.py ibtracs.WP.list.v04r01.csv par_clipped.csv \
-                           data/coverage.csv
+    python src/coverage.py ibtracs.WP.list.v04r01.csv par_clipped.csv data/coverage.csv
 """
 import sys
 

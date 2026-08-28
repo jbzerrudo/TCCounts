@@ -3,8 +3,7 @@ Recompute every value quoted in the manuscript and check each one.
 Prints OK or MISMATCH beside every value. A clean run prints zero MISMATCH.
 
 Usage
-    python src/analysis.py data/multiverse.csv par_clipped.csv \
-                           ibtracs.WP.list.v04r01.csv
+    python src/analysis.py data/multiverse.csv par_clipped.csv ibtracs.WP.list.v04r01.csv
 """
 import sys
 import numpy as np
@@ -184,8 +183,7 @@ if PAR:
     ok("PAR four-way intersection, zero years 1951-1960", (_hko == 0).sum(), 10)
 
     print("\n--- Section 3.4, single-agency counts ---")
-    _slope = lambda c: (np.asarray(c, float) @ (np.asarray(c.index, float) - np.asarray(c.index, float).mean())) \
-                       / (((np.asarray(c.index, float) - np.asarray(c.index, float).mean())) ** 2).sum()
+    _slope = lambda c: (np.asarray(c, float) @ (np.asarray(c.index, float) - np.asarray(c.index, float).mean())) / (((np.asarray(c.index, float) - np.asarray(c.index, float).mean())) ** 2).sum()
     for lab, msk, want in [("CMA alone", num(_m, "CMA_WIND") > 0, -0.091),
                            ("HKO alone", num(_m, "HKO_WIND") > 0, 0.135)]:
         ok(f"PAR, {lab}, slope 1951-2023", _slope(counts(_m, msk).loc[1951:2023]), want, .0006)
@@ -343,6 +341,22 @@ if WNP:
     _pr = pd.DataFrame({"c": _fx[_fr] * 1000 + _fy[_fr],
                         "s": _b.SID.to_numpy()[_fr]}).drop_duplicates()
     ok("storms in the densest 1-degree cell of the map", _pr.groupby("c").size().max(), 196)
+
+print("\n--- Section 2, the all-four requirement before HKO joins ---")
+for _dom, _lo in [("WNP basin", None), ("PAR", None)]:
+    _p = R[(R.domain == _dom) & (R.rule == "main track")].pivot(
+        index="start", columns="agency", values="slope")
+    _d = _p["all four"] - _p["JMA+JTWC+CMA"]
+    ok(f"{_dom}: HKO's late entry shifts the all-four slope down, starts 1951-1960",
+       _d.loc[1951:1960].mean() < 0, True)
+    ok(f"{_dom}: that shift reverses once HKO covers the whole window",
+       _d.loc[1961:2000].mean() > 0, True)
+
+print("\n--- Section 4, the archive carries operational fields only ---")
+if WNP:
+    _cols = pd.read_csv(WNP, low_memory=False, skiprows=[1], nrows=2).columns
+    ok("IBTrACS v04r01 carries no Dvorak-reanalysis column",
+       sum(1 for c in _cols if "REANAL" in c.upper() or "DVORAK" in c.upper()), 0)
 
 print("\n%d checks run, %d failed." % (N[0], FAIL[0]))
 sys.exit(1 if FAIL[0] else 0)
