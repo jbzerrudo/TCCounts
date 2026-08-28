@@ -46,12 +46,12 @@ tree, single core:
 | `multiverse.py` | fits and tests all 2,400 specifications | 31 s |
 | `coverage.py` | annual counts and per-agency graded counts | 9 s |
 | `map_domain.py` | Fig 1, the study area | 3 s |
-| `figures.py` | Fig 2 counts and coverage, Fig 3 specification curve | 11 s |
+| `figures.py` | Fig 3 counts and coverage, Fig 4 specification curve | 11 s |
 | `analysis.py` | recomputes and checks every value in the manuscript | 34 s |
 | `validate.py` | size and power of the significance test, by simulation | 100 s |
 
 `analysis.py` prints OK or MISMATCH beside each value and exits non-zero if any
-check fails. A clean run is **194 checks, 0 failed**.
+check fails. A clean run is **199 checks, 0 failed**.
 
 ## Requirements
 
@@ -61,9 +61,9 @@ run time: the shoreline the map needs is committed in `data/`.
 ## Layout
 
 ```
-src/    clip_par, multiverse, coverage, map_domain, figures, analysis, validate
+src/    clip_par, multiverse, coverage, map_domain, schematic, figures, analysis, validate
 data/   multiverse.csv, coverage.csv, coastline_wnp.npz, README.md
-figures/ Fig1_domain.pdf, Fig2.pdf, Fig3.pdf
+figures/ Fig1_domain.pdf, Fig2_design.pdf, Fig3_counts.pdf, Fig4_curve.pdf
 ```
 
 `data/README.md` documents the columns, the PAR hexagon, and two column-name
