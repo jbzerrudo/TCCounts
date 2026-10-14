@@ -1,0 +1,25 @@
+domain,series,start,slope,verdict
+WNP basin,"CMA, TS by category",1951,-0.07330618289522399,-
+WNP basin,"CMA, TS by category",1961,-0.13239247311827956,-
+WNP basin,"CMA, TS by category",1977,-0.08117483811285846,0
+WNP basin,"CMA, TS by wind",1951,-0.07537331852400346,-
+WNP basin,"CMA, TS by wind",1961,-0.13445660522273425,-
+WNP basin,"CMA, TS by wind",1977,-0.08117483811285846,0
+WNP basin,"any of 3, TS, CMA by category",1951,-0.05260397383685055,0
+WNP basin,"any of 3, TS, CMA by category",1961,-0.1037826420890937,-
+WNP basin,"any of 3, TS, CMA by category",1977,-0.06533302497687327,0
+WNP basin,"any of 3, TS, CMA by wind",1951,-0.053622115265950884,0
+WNP basin,"any of 3, TS, CMA by wind",1961,-0.10584677419354839,-
+WNP basin,"any of 3, TS, CMA by wind",1977,-0.06533302497687327,0
+PAR,"CMA, TS by category",1951,-0.04831543872639763,-
+PAR,"CMA, TS by category",1961,-0.057939708141321045,-
+PAR,"CMA, TS by category",1977,-0.053422756706753005,0
+PAR,"CMA, TS by wind",1951,-0.05442428730099963,-
+PAR,"CMA, TS by wind",1961,-0.06221198156682028,-
+PAR,"CMA, TS by wind",1977,-0.05469472710453284,0
+PAR,"any of 3, TS, CMA by category",1951,-0.03918301863507343,-
+PAR,"any of 3, TS, CMA by category",1961,-0.044786866359447,0
+PAR,"any of 3, TS, CMA by category",1977,-0.03908418131359852,0
+PAR,"any of 3, TS, CMA by wind",1951,-0.04436628409231149,-
+PAR,"any of 3, TS, CMA by wind",1961,-0.04891513056835638,-
+PAR,"any of 3, TS, CMA by wind",1977,-0.03908418131359852,0
