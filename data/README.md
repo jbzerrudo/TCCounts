@@ -60,6 +60,7 @@ tropical storm or stronger (JMA grade 3-5 or 9, `USA_SSHS` >= 0, `CMA_CAT` 2-6,
 | `ts_coverage.csv` | share of tropical-storm-strength storms each agency also rates tropical storm or stronger, by era |
 | `cma_wind_sensitivity.csv` | CMA classified by wind instead of category |
 | `dating_shares.csv`, `dating_counts.csv` | selected model, break years, support intervals and segment means for coverage shares and class counts |
+| `dating_agency_counts.csv` | the same for the counts of storms graded by JMA, JTWC and CMA, all systems and tropical-storm strength |
 | `size_ar1.csv`, `size_fitted.csv` | rejection rate with no trend under AR(1), and under the AR(p) chosen by AIC and an ARMA(1,1) |
 | `power.csv` | trend reaching 80% power, and the change it implies as a share of the window mean, windows of 24-73 years |
 | `calibrated_p.csv` | two-sided p-values of observed slopes under the fitted noise models |

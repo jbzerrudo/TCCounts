@@ -89,7 +89,7 @@ for version 4:
 |---|---|---|
 | `threshold.py` | per-storm flags; 10,000 specifications over requirement, threshold, counting rule and start year | 27 s |
 | `decompose.py` | splits each trend by storm class; tropical-storm coverage by era; CMA wind sensitivity | 2 s |
-| `dating.py` | step and smooth-trend models for coverage shares and class counts | 22 s |
+| `dating.py` | step and smooth-trend models for coverage shares, class counts and single-agency counts | 22 s |
 | `calibrate.py` | test size under AR(1) and fitted AR(p) and ARMA(1,1) noise; power by window length; calibrated p-values | 25 s |
 | `curve_test.py` | 2,000 block-bootstrap archives with no trend, run through every specification | 6 min |
 | `end_year.py` | verdicts for end years 2005 to 2023 | 2 s |
@@ -101,7 +101,7 @@ for version 4:
 The three figure scripts were timed on a slower machine, on which `curve_test.py`
 took 12.5 min.
 
-`check_v4.py` works like `analysis.py`. A clean run is **376 checks, 0 failed**.
+`check_v4.py` works like `analysis.py`. A clean run is **382 checks, 0 failed**.
 Deterministic values are checked to the rounding they were reported at. Simulated
 values (test size, power, calibrated p-values, the curve-level test) are checked
 with Monte Carlo tolerances, so the suite also passes where numpy's random streams

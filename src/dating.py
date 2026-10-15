@@ -1,13 +1,15 @@
 """
 Version 4, step 3. When the record changed.
 
-Two families of series, main track, 1951 to 2023 (HKO from 1961):
+Three families of series, main track, 1951 to 2023 (HKO from 1961):
 
-  shares  each agency's annual share of the storms in a reference set, for all
-          systems (reference: every main-track storm) and at tropical-storm
-          strength (reference: storms any agency rates tropical storm or
-          stronger); binomial
-  counts  annual counts of each storm class from decompose.py; Poisson
+  shares    each agency's annual share of the storms in a reference set, for
+            all systems (reference: every main-track storm) and at
+            tropical-storm strength (reference: storms any agency rates
+            tropical storm or stronger); binomial
+  counts    annual counts of each storm class from decompose.py; Poisson
+  agencies  annual counts of the storms graded by JMA, JTWC and CMA, for all
+            systems and at tropical-storm strength; Poisson
 
 Each series is fitted with a constant, a smooth trend (logit-linear for shares,
 log-linear for counts), and piecewise-constant means with 1, 2 or 3 breaks
@@ -18,7 +20,7 @@ holds the other breaks fixed and keeps positions whose scaled deviance is
 within 3.84 of the best.
 
 Outputs
-    data/dating_shares.csv, data/dating_counts.csv
+    data/dating_shares.csv, data/dating_counts.csv, data/dating_agency_counts.csv
 
 Usage
     python src/dating.py data/storm_flags.csv data/
@@ -165,7 +167,7 @@ def date_series(model, t):
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else "data/storm_flags.csv"
     out = sys.argv[2] if len(sys.argv) > 2 else "data"
-    shares, counts = [], []
+    shares, counts, agencies = [], [], []
     for dom in ("WNP basin", "PAR"):
         fl = load_flags(src, dom)
         ts = any4(fl, "TS")
@@ -184,13 +186,19 @@ def main():
         for name in COUNT_CLASSES:
             k = annual(fl, cl[name]).loc[1951:2023].to_numpy(float)
             counts.append(dict(domain=dom, cls=name, **date_series(Poisson(k), t)))
-    S, C = pd.DataFrame(shares), pd.DataFrame(counts)
+        for ag in ("JMA", "JTWC", "CMA"):
+            for thr in ("all", "TS"):
+                k = annual(fl, fl[f"{ag}_{thr}"]).loc[1951:2023].to_numpy(float)
+                agencies.append(dict(domain=dom, agency=ag, threshold=thr, **date_series(Poisson(k), t)))
+    S, C, A = pd.DataFrame(shares), pd.DataFrame(counts), pd.DataFrame(agencies)
     S.to_csv(os.path.join(out, "dating_shares.csv"), index=False)
     C.to_csv(os.path.join(out, "dating_counts.csv"), index=False)
+    A.to_csv(os.path.join(out, "dating_agency_counts.csv"), index=False)
     pd.set_option("display.width", 200)
     pd.set_option("display.max_colwidth", 90)
     print(C[["domain", "cls", "selected", "segments"]].to_string(index=False))
-    print(f"written: {out}/dating_shares.csv, {out}/dating_counts.csv")
+    print(A[["domain", "agency", "threshold", "selected", "segments"]].to_string(index=False))
+    print(f"written: {out}/dating_shares.csv, {out}/dating_counts.csv, {out}/dating_agency_counts.csv")
 
 
 if __name__ == "__main__":

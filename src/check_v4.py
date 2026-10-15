@@ -241,6 +241,11 @@ ok("WNP basin, CMA share: smooth trend worse by (QBIC)", r.dqbic_smooth_minus_se
 r = DS.loc[("PAR", "TS strength", "JTWC")]
 exact("PAR, JTWC share at tropical-storm strength: model", r.selected, "constant")
 ok("PAR, JTWC share at tropical-storm strength (%)", share_segs(r)[0], "91.9")
+DA = rd("dating_agency_counts.csv").set_index(["domain", "agency", "threshold"])
+for dom in ("WNP basin", "PAR"):
+    for thr in ("all", "TS"):
+        exact(f"{dom}, count of storms graded by JMA, {thr}: model", DA.loc[(dom, "JMA", thr)].selected, "constant")
+    exact(f"{dom}, count of storms graded by JTWC, TS: model", DA.loc[(dom, "JTWC", "TS")].selected, "constant")
 
 print("\n--- Analysis 5a: size of the test (simulated; Monte Carlo tolerance) ---")
 S1 = rd("size_ar1.csv")
