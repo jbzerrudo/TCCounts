@@ -1,7 +1,7 @@
 {
   "title": "TCCounts: enumerating the specification space of western North Pacific and Philippine Area of Responsibility tropical cyclone count trends",
-  "description": "Scripts and derived data behind an enumeration of every defensible specification of a tropical cyclone count trend in the western North Pacific basin and the PAGASA Philippine Area of Responsibility, 1884 to 2023. Clips IBTrACS v04r01 to the PAR hexagon, fits and tests a linear trend under all 2,400 combinations of six grading requirements, four counting rules and fifty start years, measures the size and power of the significance test by simulation, and reproduces every value reported in the accompanying manuscript through an automated check suite.",
-  "version": "3.0.0",
+  "description": "Scripts and derived data behind an enumeration of tropical cyclone count trends in the western North Pacific basin and the PAGASA Philippine Area of Responsibility (PAR), from IBTrACS v04r01, 1884 to 2023. Version 4 fits and tests a linear trend under every combination of six grading requirements, three intensity thresholds, four counting rules and fifty start years, and for three further series, 10,000 specifications in all; decomposes the trend by storm class; dates changes in the record and in each agency's count with step models; calibrates the significance test against fitted noise models; tests the specification curve as a whole; checks the dependence on the end year; and compares the archive with PAGASA's own record, whose data and derived outputs are not redistributed. Automated check suites reproduce every value reported in the accompanying manuscript.",
+  "version": "4.0.0",
   "upload_type": "software",
   "license": "MIT",
   "creators": [
